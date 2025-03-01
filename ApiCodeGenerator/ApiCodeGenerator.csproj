@@ -20,6 +20,7 @@
     <None Remove="Templates\GenericRepository.txt" />
     <None Remove="Templates\IGenericRepository.txt" />
     <None Remove="Templates\ISpecification.txt" />
+    <None Remove="Templates\Program.cs.txt" />
     <None Remove="Templates\ProgramTemplate.tt" />
     <None Remove="Templates\spec.txt" />
     <None Remove="Templates\SpecificationEvaluator.txt" />
@@ -44,6 +45,9 @@
     <Content Include="Templates\ISpecification.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Templates\Program.cs.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Templates\spec.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -57,6 +61,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.13" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.13" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Scriban" Version="5.12.1" />
   </ItemGroup>
 
   <ItemGroup>

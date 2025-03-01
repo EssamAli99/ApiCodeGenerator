@@ -1,6 +1,9 @@
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System.Text;
+using Scriban;
+using Scriban.Runtime;
+
 namespace ApiCodeGenerator;
 
 public partial class frmMain : Form
@@ -15,6 +18,13 @@ public partial class frmMain : Form
         pnlScreen3.Visible = false;
         pnlScreen1.Dock = DockStyle.Fill;
         pnlScreen1.Location = new Point(0, 0);
+
+        // Populate AuthType dropdown
+        ddlAuthType.Items.Add("None");
+        ddlAuthType.Items.Add("JWT");
+        ddlAuthType.Items.Add("API Keys");
+        ddlAuthType.Items.Add("OAuth 2.0");
+        ddlAuthType.SelectedItem = "None"; // Set default selection
     }
 
     private void ShowPanel(Panel panelToShow)
@@ -74,6 +84,7 @@ public partial class frmMain : Form
         }
         _settings.ConnectionString = txtConnectionString.Text;
         _settings.AuthenticationType = ddlAuthType.SelectedItem?.ToString() ?? "None"; // Save Authentication 
+
         string jsonFilePath = Path.Combine(Environment.CurrentDirectory, "settings.json");
 
         try
@@ -377,7 +388,9 @@ public partial class frmMain : Form
             case "ntext":
                 return "string";
             case "decimal":
+                return "decimal";
             case "money":
+                return "decimal";
             case "smallmoney":
                 return "decimal";
             case "float":
@@ -385,7 +398,9 @@ public partial class frmMain : Form
             case "real":
                 return "float";
             case "datetime":
+                return "DateTime";
             case "smalldatetime":
+                return "DateTime";
             case "datetime2":
                 return "DateTime";
             case "date":
@@ -397,8 +412,6 @@ public partial class frmMain : Form
             case "uniqueidentifier":
                 return "Guid";
             case "varbinary":
-            case "binary":
-            case "image":
                 return "byte[]";
             default:
                 return "object"; // Unknown type
@@ -505,21 +518,6 @@ namespace {_settings.ApiName}.Entities
 
         return code.ToString();
     }
-
-    private void GenerateController(string projectFolder, EntityDefinition entity)
-    {
-        string controllersFolder = Path.Combine(projectFolder, "Controllers");
-        string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "ControllerTemplate.txt");
-        string controllerCode = File.ReadAllText(templatePath);
-
-        controllerCode = controllerCode.Replace("<#= ApiName #>", _settings.ApiName);
-        controllerCode = controllerCode.Replace("<#= EntityName #>", entity.EntityName);
-        controllerCode = controllerCode.Replace("<#= AuthenticationType #>", _settings.AuthenticationType); // Pass AuthenticationType
-
-        string controllerFilePath = Path.Combine(controllersFolder, $"{entity.EntityName}Controller.cs");
-        File.WriteAllText(controllerFilePath, controllerCode);
-    }
-
     private void GenerateApiProjectFile(string projectFolder)
     {
         string apiProjectTemplate = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "ApiProject.csproj.txt"));
@@ -530,33 +528,52 @@ namespace {_settings.ApiName}.Entities
 
     private void GenerateProgramFile(string projectFolder)
     {
-        string programTemplate = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Program.cs.tt"));
-        programTemplate = programTemplate.Replace("<#= ApiName #>", _settings.ApiName);
-        programTemplate = programTemplate.Replace("<#= AuthenticationType #>", _settings.AuthenticationType); // Pass AuthenticationType
+        string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Program.cs.txt");
+        string templateContent = File.ReadAllText(templatePath);
 
-        // Add a breakpoint here:
-        System.Diagnostics.Debugger.Break(); // Or use a regular breakpoint in the IDE
+        // Create a Scriban template
+        var template = Template.Parse(templateContent);
+
+        // Create a Scriban template context
+        var context = new TemplateContext();
+        var scriptObject = new ScriptObject();
+
+        // Add the data to the template context
+        scriptObject.Add("ApiName", _settings.ApiName);
+        scriptObject.Add("AuthenticationType", _settings.AuthenticationType);
+        scriptObject.Add("Entities", _settings.Entities);
+        context.PushGlobal(scriptObject);
+
+        // Render the template
+        string programCode = template.Render(context);
 
         string programFilePath = Path.Combine(projectFolder, "Program.cs");
-        File.WriteAllText(programFilePath, programTemplate);
+        File.WriteAllText(programFilePath, programCode);
     }
+    private void GenerateController(string projectFolder, EntityDefinition entity)
+    {
+        string controllersFolder = Path.Combine(projectFolder, "Controllers");
+        string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "ControllerTemplate.txt");
+        string templateContent = File.ReadAllText(templatePath);
 
-    //private void GenerateProgramFile(string projectFolder)
-    //{
-    //    string programTemplate = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "Program.cs.tt"));
+        // Create a Scriban template
+        var template = Template.Parse(templateContent);
 
-    //    // Create an instance of the T4 template
-    //    ProgramTemplate programTemplateInstance = new ProgramTemplate();
+        // Create a Scriban template context
+        var context = new TemplateContext();
+        var scriptObject = new ScriptObject();
 
-    //    // Pass the required data to the T4 template
-    //    programTemplateInstance.ApiName = _settings.ApiName;
-    //    programTemplateInstance.AuthenticationType = _settings.AuthenticationType;
-    //    programTemplateInstance.Entities = _settings.Entities; // You might need to pass this as well
+        // Add the data to the template context
+        scriptObject.Add("ApiName", _settings.ApiName);
+        scriptObject.Add("EntityName", entity.EntityName);
+        scriptObject.Add("AuthenticationType", _settings.AuthenticationType);
 
-    //    // Transform the template
-    //    string programCode = programTemplateInstance.TransformText();
+        context.PushGlobal(scriptObject);
 
-    //    string programFilePath = Path.Combine(projectFolder, "Program.cs");
-    //    File.WriteAllText(programFilePath, programCode);
-    //}
+        // Render the template
+        string controllerCode = template.Render(context);
+
+        string controllerFilePath = Path.Combine(controllersFolder, $"{entity.EntityName}Controller.cs");
+        File.WriteAllText(controllerFilePath, controllerCode);
+    }
 }

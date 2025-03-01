@@ -1,37 +1,38 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using <#= ApiName #>.Entities;
-using <#= ApiName #>.Data.Repositories;
-<# if (AuthenticationType == "JWT" || AuthenticationType == "OAuth 2.0") { #>
-using Microsoft.AspNetCore.Authorization; // Authorize
-<# } #>
+using {{ ApiName }}.Entities;
+using {{ ApiName }}.Data.Repositories;
 
-namespace <#= ApiName #>.Controllers
+{{ if AuthenticationType == "JWT" || AuthenticationType == "OAuth 2.0" }}
+using Microsoft.AspNetCore.Authorization;
+{{ end }}
+
+namespace {{ ApiName }}.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-<# if (AuthenticationType == "JWT" || AuthenticationType == "OAuth 2.0") { #>
-    [Authorize] // Add Authorize attribute for JWT and OAuth 2.0
-<# } #>
-    public class <#= EntityName #>Controller : ControllerBase
+    {{ if AuthenticationType == "JWT" || AuthenticationType == "OAuth 2.0" }}
+    [Authorize]
+    {{ end }}
+    public class {{ EntityName }}Controller : ControllerBase
     {
-        private readonly IGenericRepository<<#= EntityName #>> _repository;
+        private readonly IGenericRepository<{{ EntityName }}> _repository;
 
-        public <#= EntityName #>Controller(IGenericRepository<<#= EntityName #>> repository)
+        public {{ EntityName }}Controller(IGenericRepository<{{ EntityName }}> repository)
         {
             _repository = repository;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<<#= EntityName #>>>> Get()
+        public async Task<ActionResult<List<{{ EntityName }}>>> Get()
         {
             var entities = await _repository.ListAllAsync();
             return Ok(entities);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<<#= EntityName #>>> Get(int id)
+        public async Task<ActionResult<{{ EntityName }}>> Get(int id)
         {
             var entity = await _repository.GetByIdAsync(id);
 
@@ -44,14 +45,14 @@ namespace <#= ApiName #>.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<<#= EntityName #>>> Post([FromBody] <#= EntityName #> entity)
+        public async Task<ActionResult<{{ EntityName }}>> Post([FromBody] {{ EntityName }} entity)
         {
             await _repository.AddAsync(entity);
             return CreatedAtAction(nameof(Get), new { id = entity.Id }, entity); // Assuming entity has an Id property
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] <#= EntityName #> entity)
+        public async Task<IActionResult> Put(int id, [FromBody] {{ EntityName }} entity)
         {
             if (id != entity.Id)
             {

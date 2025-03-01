@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using <#= ApiName #>.Data;
-using <#= ApiName #>.Data.Repositories;
+using {{ ApiName }}.Data;
+using {{ ApiName }}.Data.Repositories;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer; 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,9 +15,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "<#= ApiName #> API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "{{ ApiName }} API", Version = "v1" });
 
-<# if (AuthenticationType == "JWT") { #>
+    {{ if AuthenticationType == "JWT" }}
     // Add JWT Bearer Authentication
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -41,17 +40,17 @@ builder.Services.AddSwaggerGen(c =>
             new string[] {}
         }
     });
-<# } #>
+    {{ end }}
 });
 
 // Configure DbContext
-builder.Services.AddDbContext<<#= ApiName #>DbContext>(options =>
+builder.Services.AddDbContext<{{ ApiName }}DbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Register Repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-<# if (AuthenticationType == "JWT") { #>
+{{ if AuthenticationType == "JWT" }}
     // Add Authentication
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
@@ -70,13 +69,13 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 
     // Add Authorization
     builder.Services.AddAuthorization();
-<# } else if (AuthenticationType == "API Keys") { #>
+{{ else if AuthenticationType == "API Keys" }}
     // API Keys Authentication Logic Here
     // (Implementation details depend on your API Key strategy)
-<# } else if (AuthenticationType == "OAuth 2.0") { #>
+{{ else if AuthenticationType == "OAuth 2.0" }}
     // OAuth 2.0 Authentication Logic Here
     // (Implementation details depend on your OAuth 2.0 provider)
-<# } #>
+{{ end }}
 
 var app = builder.Build();
 
@@ -86,23 +85,23 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "<#= ApiName #> API V1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "{{ ApiName }} API V1");
 
-<# if (AuthenticationType == "JWT") { #>
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "<#= ApiName #> API V1");
+        {{ if AuthenticationType == "JWT" }}
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "{{ ApiName }} API V1");
         c.EnableFilter(); // Enable authentication/authorization filters in Swagger UI
-<# } #>
+        {{ end }}
     });
 }
 
 app.UseHttpsRedirection();
 
-<# if (AuthenticationType == "JWT") { #>
+{{ if AuthenticationType == "JWT" }}
     app.UseAuthentication();
     app.UseAuthorization();
-<# } else { #>
+{{ else }}
     app.UseAuthorization(); // Keep this, even if no auth, for potential future use
-<# } #>
+{{ end }}
 
 app.MapControllers();
 
