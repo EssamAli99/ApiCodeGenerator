@@ -1,0 +1,41 @@
+﻿// SpecificationEvaluator.cs
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+
+namespace <#= ApiName #>.Data.Specifications
+{
+    public class SpecificationEvaluator<T> where T : class
+    {
+        public static IQueryable<T> GetQuery(IQueryable<T> inputQuery, ISpecification<T> spec)
+        {
+            var query = inputQuery;
+
+            // Apply the criteria (e.g., filtering)
+            if (spec.Criteria != null)
+            {
+                query = query.Where(spec.Criteria);
+            }
+
+            // Apply ordering
+            if (spec.OrderBy != null)
+            {
+                query = spec.OrderBy.Aggregate(query, (current, orderBy) => current.OrderBy(orderBy));
+            }
+            else if (spec.OrderByDescending != null)
+            {
+                query = spec.OrderByDescending.Aggregate(query, (current, orderByDescending) => current.OrderByDescending(orderByDescending));
+            }
+
+            // Apply paging
+            if (spec.IsPagingEnabled)
+            {
+                query = query.Skip(spec.Skip).Take(spec.Take);
+            }
+
+            // Apply includes (e.g., eager loading)
+            query = spec.Includes.Aggregate(query, (current, include) => current.Include(include));
+
+            return query;
+        }
+    }
+}

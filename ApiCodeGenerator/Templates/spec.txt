@@ -1,0 +1,65 @@
+﻿// ProductsWithCategorySpecification.cs
+using System;
+using System.Linq.Expressions;
+using <#= ApiName #>.Data.Specifications;
+using <#= ApiName #>.Entities; // Replace with your actual namespace
+
+namespace <#= ApiName #>.Data.Specifications
+{
+    public class ProductsWithCategorySpecification : BaseSpecification<Product>
+    {
+        public ProductsWithCategorySpecification(string productName, int? categoryId)
+            : base(p =>
+                   (string.IsNullOrEmpty(productName) || p.ProductName.Contains(productName)) &&
+                   (!categoryId.HasValue || p.CategoryId == categoryId)
+            )
+        {
+            AddInclude(p => p.Category);
+            AddOrderBy(p => p.ProductName);
+        }
+
+        public ProductsWithCategorySpecification(int id) : base(p => p.Id == id)
+        {
+            AddInclude(p => p.Category);
+        }
+    }
+}
+
+// IProductRepository.cs
+using System.Threading.Tasks;
+using <#= ApiName #>.Entities; // Replace with your actual namespace
+
+namespace <#= ApiName #>.Data.Repositories
+{
+    public interface IProductRepository : IGenericRepository<Product>
+    {
+        Task<Product> GetProductWithCategoryAsync(int id);
+    }
+}
+
+// ProductRepository.cs
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using <#= ApiName #>.Data; // Replace with your actual namespace
+using <#= ApiName #>.Entities; // Replace with your actual namespace
+using <#= ApiName #>.Data.Specifications;
+
+namespace <#= ApiName #>.Data.Repositories
+{
+    public class ProductRepository : GenericRepository<Product>, IProductRepository
+    {
+        private readonly <#= ApiName #>DbContext _dbContext;
+
+        public ProductRepository(<#= ApiName #>DbContext dbContext) : base(dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
+        public async Task<Product> GetProductWithCategoryAsync(int id)
+        {
+            var spec = new ProductsWithCategorySpecification(id);
+            var products = await ListAsync(spec);
+            return products.FirstOrDefault();
+        }
+    }
+}

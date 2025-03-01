@@ -1,0 +1,78 @@
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using <#= ApiName #>.Entities;
+using <#= ApiName #>.Data.Repositories;
+<# if (AuthenticationType == "JWT" || AuthenticationType == "OAuth 2.0") { #>
+using Microsoft.AspNetCore.Authorization; // Authorize
+<# } #>
+
+namespace <#= ApiName #>.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+<# if (AuthenticationType == "JWT" || AuthenticationType == "OAuth 2.0") { #>
+    [Authorize] // Add Authorize attribute for JWT and OAuth 2.0
+<# } #>
+    public class <#= EntityName #>Controller : ControllerBase
+    {
+        private readonly IGenericRepository<<#= EntityName #>> _repository;
+
+        public <#= EntityName #>Controller(IGenericRepository<<#= EntityName #>> repository)
+        {
+            _repository = repository;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<<#= EntityName #>>>> Get()
+        {
+            var entities = await _repository.ListAllAsync();
+            return Ok(entities);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<<#= EntityName #>>> Get(int id)
+        {
+            var entity = await _repository.GetByIdAsync(id);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(entity);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<<#= EntityName #>>> Post([FromBody] <#= EntityName #> entity)
+        {
+            await _repository.AddAsync(entity);
+            return CreatedAtAction(nameof(Get), new { id = entity.Id }, entity); // Assuming entity has an Id property
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Put(int id, [FromBody] <#= EntityName #> entity)
+        {
+            if (id != entity.Id)
+            {
+                return BadRequest();
+            }
+
+            await _repository.UpdateAsync(entity);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            await _repository.DeleteAsync(entity);
+            return NoContent();
+        }
+    }
+}
