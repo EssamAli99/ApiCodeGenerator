@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,34 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
     {{ end }}
+     {{ if AuthenticationType == "OAuth 2.0" }}
+     c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.OAuth2,
+                Flows = new OpenApiOAuthFlows
+                {
+                    AuthorizationCode = new OpenApiOAuthFlow
+                    {
+                        AuthorizationUrl = new Uri("{{ OAuth2:AuthorizationUrl }}"),
+                        TokenUrl = new Uri("{{ OAuth2:TokenUrl }}"),
+                        Scopes = new Dictionary<string, string>
+                        {
+                            { "{{ OAuth2:Scope }}", "{{ ApiName }} API" }
+                        }
+                    }
+                }
+            });
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
+                    },
+                    new[] { "{{ OAuth2:Scope }}" }
+                }
+            });
+        {{ end }}
 });
 
 // Configure DbContext
@@ -71,36 +100,35 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
     // Add Authorization
     builder.Services.AddAuthorization();
 {{ else if AuthenticationType == "API Keys" }}
-        builder.Services.AddScoped<ApiKeyAuthFilter>();
-        builder.Services.AddAuthentication("ApiKey")
+    builder.Services.AddScoped<ApiKeyAuthFilter>();
+    builder.Services.AddAuthentication("ApiKey")
         .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>("ApiKey", options =>
         {
             options.KeyName = "X-API-Key"; // Customize the header name if needed
         });
 {{ else if AuthenticationType == "OAuth 2.0" }}
-    // OAuth 2.0 Authentication
-    builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = OpenIdConnectDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-    })
-    .AddOpenIdConnect(options =>
-    {
-        options.Authority = "https://login.microsoftonline.com/{your-tenant-id}/v2.0"; // Replace with your provider's authority
-        options.ClientId = "{your-client-id}"; // Replace with your client ID
-        options.ClientSecret = "{your-client-secret}"; // Replace with your client secret
-        options.ResponseType = "code";
-        options.SaveTokens = true;
-        options.GetClaimsFromUserInfoEndpoint = true;
-        options.Scope.Add("openid");
-        options.Scope.Add("profile");
-
-        options.TokenValidationParameters = new TokenValidationParameters
+        builder.Services.AddAuthentication(options =>
         {
-            NameClaimType = "name",
-            RoleClaimType = "role"
-        };
-    });
+            options.DefaultScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+        })
+        .AddOpenIdConnect(options =>
+        {
+            options.Authority = builder.Configuration["OAuth2:Authority"]; // Replace with your provider's authority
+            options.ClientId = builder.Configuration["OAuth2:ClientId"]; // Replace with your client ID
+            options.ClientSecret = builder.Configuration["OAuth2:ClientSecret"]; // Replace with your client secret
+            options.ResponseType = "code";
+            options.SaveTokens = true;
+            options.GetClaimsFromUserInfoEndpoint = true;
+            options.Scope.Add(builder.Configuration["OAuth2:Scope"]);
+
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                NameClaimType = "name",
+                RoleClaimType = "role",
+                ValidateIssuer = false
+            };
+        });
 
     builder.Services.AddAuthorization(options =>
     {
@@ -122,6 +150,11 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "{{ ApiName }} API V1");
         c.EnableFilter(); // Enable authentication/authorization filters in Swagger UI
         {{ end }}
+         {{ if AuthenticationType == "OAuth 2.0" }}
+            c.OAuthClientId(builder.Configuration["OAuth2:ClientId"]);
+            c.OAuthScopes(builder.Configuration["OAuth2:Scope"]);
+            c.OAuthUsePkce();
+        {{ end }}
     });
 }
 
@@ -131,6 +164,7 @@ app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();
 {{ else }}
+    app.UseAuthentication();
     app.UseAuthorization(); // Keep this, even if no auth, for potential future use
 {{ end }}
 

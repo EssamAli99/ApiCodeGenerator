@@ -288,7 +288,13 @@ public partial class frmMain : Form
   },
   ""ApiSettings"": {
     ""ApiKey"": ""YourSecureApiKey""
-    }
+    },
+  ""OAuth2"": {
+    ""Authority"": ""your_oauth2_authority"",
+    ""ClientId"": ""your_client_id"",
+    ""ClientSecret"": ""your_client_secret"",
+    ""Scope"": ""openid profile email""
+  }
 }";
 
         string appSettingsFilePath = Path.Combine(projectFolder, "appsettings.json");
