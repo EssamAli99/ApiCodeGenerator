@@ -8,24 +8,25 @@ namespace {{ ApiName }}.Validation
         public {{ EntityName }}Validator()
         {
             {{ for property in Properties }}
-                {{ if property.Required }}
-                RuleFor(x => x.{{ property.PropertyName }}).NotEmpty().WithMessage("{{ property.PropertyName }} is required.");
-                {{ end }}
-                {{ if property.MaxLength }}
-                RuleFor(x => x.{{ property.PropertyName }}).MaximumLength({{ property.MaxLength }}).WithMessage("{{ property.PropertyName }} must not exceed {{ property.MaxLength }} characters.");
-                {{ end }}
-                {{ if property.MinLength }}
-                RuleFor(x => x.{{ property.PropertyName }}).MinimumLength({{ property.MinLength }}).WithMessage("{{ property.PropertyName }} must be at least {{ property.MinLength }} characters.");
-                {{ end }}
-                {{ if property.EmailAddress }}
-                RuleFor(x => x.{{ property.PropertyName }}).EmailAddress().WithMessage("{{ property.PropertyName }} is not a valid email address.");
-                {{ end }}
-                {{ if property.Range }}
-                RuleFor(x => x.{{ property.PropertyName }}).InclusiveBetween({{ property.RangeMin }}, {{ property.RangeMax }}).WithMessage("{{ property.PropertyName }} must be between {{ property.RangeMin }} and {{ property.RangeMax }}.");
-                {{ end }}
-                {{ if property.Regex }}
-                RuleFor(x => x.{{ property.PropertyName }}).Matches("{{ property.RegexPattern }}").WithMessage("{{ property.PropertyName }} is not in the correct format.");
-                {{ end }}
+            //{{ property.property_name }}
+            {{ if property.required == true }}
+            RuleFor(x => x.{{ property.property_name }}).NotEmpty().WithMessage("{{ property.property_name }} is required.");
+            {{ end }}
+            {{ if property.max_length != null }}
+            RuleFor(x => x.{{ property.property_name }}).MaximumLength({{ property.max_length }}).WithMessage("{{ property.property_name }} must not exceed {{ property.max_length }} characters.");
+            {{ end }}
+            {{ if property.min_length != null }}
+            RuleFor(x => x.{{ property.property_name }}).MinimumLength({{ property.min_length }}).WithMessage("{{ property.property_name }} must be at least {{ property.min_length }} characters.");
+            {{ end }}
+            {{ if property.email_address == true }}
+            RuleFor(x => x.{{ property.property_name }}).EmailAddress().WithMessage("{{ property.property_name }} is not a valid email address.");
+            {{ end }}
+            {{ if property.range != null }}
+            RuleFor(x => x.{{ property.property_name }}).InclusiveBetween({{ property.range_min }}, {{ property.range_max }}).WithMessage("{{ property.property_name }} must be between {{ property.range_min }} and {{ property.range_max }}.");
+            {{ end }}
+            {{ if property.regex_pattern != "" }}
+            RuleFor(x => x.{{ property.property_name }}).Matches("{{ property.RegexPattern }}").WithMessage("{{ property.property_name }} is not in the correct format.");
+            {{ end }}
             {{ end }}
         }
     }
