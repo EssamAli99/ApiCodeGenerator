@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Text;
 using Scriban;
 using Scriban.Runtime;
+using System.Diagnostics;
 
 namespace ApiCodeGenerator;
 
@@ -242,12 +243,27 @@ public partial class frmMain : Form
             // Step 9: Copy Repository and Specification files
             CopyRepositoryAndSpecificationFiles(projectFolder);
 
+            // Step 10: Generate ApiKey authentication options if selected
+            if (_settings.AuthenticationType == "API Keys")
+            {
+                GenerateApiKeyOptions(servicesFolder);
+            }
+
             MessageBox.Show("Entities generated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex)
         {
             MessageBox.Show($"Error generating entities: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+    }
+
+    private void GenerateApiKeyOptions(string servicesFolder)
+    {
+        string sourceFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates"); // Assuming "Templates" folder is in the same directory as the executable
+
+        CopyAndReplaceNamespace(Path.Combine(sourceFolder, "ApiKeyAuthenticationOptions.txt"), Path.Combine(servicesFolder, "ApiKeyAuthenticationOptions.cs"));
+        CopyAndReplaceNamespace(Path.Combine(sourceFolder, "ApiKeyAuthFilter.txt"), Path.Combine(servicesFolder, "ApiKeyAuthFilter.cs"));
+
     }
 
     // New Methods:
@@ -269,7 +285,10 @@ public partial class frmMain : Form
     ""Key"": ""YourSuperSecretKeyHere"",
     ""Issuer"": ""yourdomain.com"",
     ""Audience"": ""yourdomain.com""
-  }
+  },
+  ""ApiSettings"": {
+    ""ApiKey"": ""YourSecureApiKey""
+    }
 }";
 
         string appSettingsFilePath = Path.Combine(projectFolder, "appsettings.json");
@@ -282,6 +301,35 @@ public partial class frmMain : Form
         {
             GenerateController(projectFolder, entity);
         }
+        // Generate Account Controller if authentication is enabled
+        if (_settings.AuthenticationType != "None")
+        {
+            GenerateAccountController(projectFolder);
+        }
+    }
+    private void GenerateAccountController(string projectFolder)
+    {
+        string controllersFolder = Path.Combine(projectFolder, "Controllers");
+        string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "AccountControllerTemplate.txt");
+        string templateContent = File.ReadAllText(templatePath);
+
+        // Create a Scriban template
+        var template = Template.Parse(templateContent);
+
+        // Create a Scriban template context
+        var context = new TemplateContext();
+        var scriptObject = new ScriptObject();
+
+        // Add the data to the template context
+        scriptObject.Add("ApiName", _settings.ApiName);
+        scriptObject.Add("AuthenticationType", _settings.AuthenticationType);
+        context.PushGlobal(scriptObject);
+
+        // Render the template
+        string controllerCode = template.Render(context);
+
+        string controllerFilePath = Path.Combine(controllersFolder, "AccountController.cs");
+        File.WriteAllText(controllerFilePath, controllerCode);
     }
     private void CopyRepositoryAndSpecificationFiles(string projectFolder)
     {

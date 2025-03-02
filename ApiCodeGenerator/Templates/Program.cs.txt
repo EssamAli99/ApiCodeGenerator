@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using {{ ApiName }}.Data;
 using {{ ApiName }}.Data.Repositories;
+using {{ ApiName }}.Services;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -70,11 +71,41 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
     // Add Authorization
     builder.Services.AddAuthorization();
 {{ else if AuthenticationType == "API Keys" }}
-    // API Keys Authentication Logic Here
-    // (Implementation details depend on your API Key strategy)
+        builder.Services.AddScoped<ApiKeyAuthFilter>();
+        builder.Services.AddAuthentication("ApiKey")
+        .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>("ApiKey", options =>
+        {
+            options.KeyName = "X-API-Key"; // Customize the header name if needed
+        });
 {{ else if AuthenticationType == "OAuth 2.0" }}
-    // OAuth 2.0 Authentication Logic Here
-    // (Implementation details depend on your OAuth 2.0 provider)
+    // OAuth 2.0 Authentication
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = OpenIdConnectDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+    })
+    .AddOpenIdConnect(options =>
+    {
+        options.Authority = "https://login.microsoftonline.com/{your-tenant-id}/v2.0"; // Replace with your provider's authority
+        options.ClientId = "{your-client-id}"; // Replace with your client ID
+        options.ClientSecret = "{your-client-secret}"; // Replace with your client secret
+        options.ResponseType = "code";
+        options.SaveTokens = true;
+        options.GetClaimsFromUserInfoEndpoint = true;
+        options.Scope.Add("openid");
+        options.Scope.Add("profile");
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            NameClaimType = "name",
+            RoleClaimType = "role"
+        };
+    });
+
+    builder.Services.AddAuthorization(options =>
+    {
+        options.FallbackPolicy = options.DefaultPolicy;
+    });
 {{ end }}
 
 var app = builder.Build();

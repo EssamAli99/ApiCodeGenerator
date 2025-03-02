@@ -1,0 +1,68 @@
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+{{ if AuthenticationType == "JWT" }}
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using System;
+{{ end }}
+
+namespace {{ ApiName }}.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AccountController : ControllerBase
+    {
+        {{ if AuthenticationType == "JWT" }}
+        private readonly IConfiguration _configuration;
+
+        public AccountController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        [HttpPost("login")]
+        public IActionResult Login(string username, string password)
+        {
+            // Authenticate the user (replace with your actual authentication logic)
+            if (username == "test" && password == "password")
+            {
+                // Generate a JWT token
+                var token = GenerateJwtToken(username);
+                return Ok(new { Token = token });
+            }
+
+            return Unauthorized();
+        }
+
+        private string GenerateJwtToken(string username)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[] {
+                new Claim(ClaimTypes.NameIdentifier, username),
+                new Claim(ClaimTypes.Email, "test@example.com"),
+                new Claim(ClaimTypes.GivenName, "Test User"),
+                new Claim(ClaimTypes.Surname, "Surname"),
+                new Claim(ClaimTypes.Role, "Admin") // Example role
+            };
+
+            var token = new JwtSecurityToken(_configuration["Jwt:Issuer"],
+              _configuration["Jwt:Audience"],
+              claims,
+              expires: DateTime.Now.AddMinutes(60),
+              signingCredentials: credentials);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        {{ else if AuthenticationType == "API Keys" }}
+        // API Key registration/management endpoints would go here
+        {{ else if AuthenticationType == "OAuth 2.0" }}
+        // OAuth 2.0 login endpoints would go here
+        {{ else }}
+        // No authentication
+        {{ end }}
+    }
+}

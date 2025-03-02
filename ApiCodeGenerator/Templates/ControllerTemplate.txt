@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using {{ ApiName }}.Entities;
 using {{ ApiName }}.Data.Repositories;
+using {{ ApiName }}.Services;
 
 {{ if AuthenticationType == "JWT" || AuthenticationType == "OAuth 2.0" }}
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,8 @@ namespace {{ ApiName }}.Controllers
     [Route("api/[controller]")]
     {{ if AuthenticationType == "JWT" || AuthenticationType == "OAuth 2.0" }}
     [Authorize]
+    {{ else if AuthenticationType == "API Keys" }}
+    [ServiceFilter(typeof(ApiKeyAuthFilter))] // Use ApiKeyAuthFilter
     {{ end }}
     public class {{ EntityName }}Controller : ControllerBase
     {

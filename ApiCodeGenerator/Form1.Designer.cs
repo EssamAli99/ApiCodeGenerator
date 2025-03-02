@@ -50,15 +50,15 @@
             pnlScreen2 = new Panel();
             label6 = new Label();
             ddlAuthType = new ComboBox();
+            apiProjectSettingsBindingSource = new BindingSource(components);
             btnBrowse = new Button();
             pnlScreen1 = new Panel();
             btnGenerate = new Button();
             pnlScreen3 = new Panel();
-            apiProjectSettingsBindingSource = new BindingSource(components);
             pnlScreen2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)apiProjectSettingsBindingSource).BeginInit();
             pnlScreen1.SuspendLayout();
             pnlScreen3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)apiProjectSettingsBindingSource).BeginInit();
             SuspendLayout();
             // 
             // btnStart
@@ -234,11 +234,14 @@
             ddlAuthType.DataBindings.Add(new Binding("SelectedItem", apiProjectSettingsBindingSource, "AuthenticationType", true));
             ddlAuthType.DataBindings.Add(new Binding("SelectedValue", apiProjectSettingsBindingSource, "AuthenticationType", true));
             ddlAuthType.FormattingEnabled = true;
-            ddlAuthType.Items.AddRange(new object[] { "None", "JWT", "API Key", "OAuth 2.0" });
             ddlAuthType.Location = new Point(152, 82);
             ddlAuthType.Name = "ddlAuthType";
             ddlAuthType.Size = new Size(421, 28);
             ddlAuthType.TabIndex = 5;
+            // 
+            // apiProjectSettingsBindingSource
+            // 
+            apiProjectSettingsBindingSource.DataSource = typeof(ApiProjectSettings);
             // 
             // btnBrowse
             // 
@@ -286,10 +289,6 @@
             pnlScreen3.Size = new Size(591, 408);
             pnlScreen3.TabIndex = 12;
             // 
-            // apiProjectSettingsBindingSource
-            // 
-            apiProjectSettingsBindingSource.DataSource = typeof(ApiProjectSettings);
-            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -304,11 +303,11 @@
             Text = "API Code Generator";
             pnlScreen2.ResumeLayout(false);
             pnlScreen2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)apiProjectSettingsBindingSource).EndInit();
             pnlScreen1.ResumeLayout(false);
             pnlScreen1.PerformLayout();
             pnlScreen3.ResumeLayout(false);
             pnlScreen3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)apiProjectSettingsBindingSource).EndInit();
             ResumeLayout(false);
         }
 
