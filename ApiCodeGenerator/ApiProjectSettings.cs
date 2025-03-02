@@ -7,6 +7,7 @@ public class ApiProjectSettings
     public string ProjectFolder { get; set; } = string.Empty;
     public string ConnectionString { get; set; } = string.Empty;
     public string AuthenticationType { get; set; } = "None"; // Default to "None"
+    public string LoggingType { get; set; } = "None"; // Default to "None"
     public List<EntityDefinition> Entities { get; set; } = new List<EntityDefinition>();
 }
 

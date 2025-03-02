@@ -26,6 +26,14 @@ public partial class frmMain : Form
         ddlAuthType.Items.Add("API Keys");
         ddlAuthType.Items.Add("OAuth 2.0");
         ddlAuthType.SelectedItem = "None"; // Set default selection
+
+        // Populate Logging Types dropdown
+        ddlLoggingType.Items.Add("None");
+        ddlLoggingType.Items.Add("Console");
+        ddlLoggingType.Items.Add("Text files");
+        ddlLoggingType.Items.Add("SEQ");
+        ddlLoggingType.Items.Add("Serilog");
+        ddlLoggingType.SelectedItem = "None"; // Set default selection
     }
 
     private void ShowPanel(Panel panelToShow)
@@ -56,6 +64,7 @@ public partial class frmMain : Form
         _settings.ApiProjectName = txtApiProjectName.Text;
         _settings.ApiName = txtApiName.Text;
         _settings.ProjectFolder = txtProjectFolder.Text;
+        _settings.LoggingType = ddlLoggingType.SelectedItem?.ToString() ?? "None"; // Save Logging Type
 
         // Save to JSON file
         string jsonFilePath = Path.Combine(Environment.CurrentDirectory, "settings.json");
@@ -319,6 +328,11 @@ public partial class frmMain : Form
     ""LogLevel"": {
       ""Default"": ""Information"",
       ""Microsoft.AspNetCore"": ""Warning""
+    },
+    ""File"": {
+      ""Path"": ""C:\\logs"",
+      ""RollingInterval"": ""Day"",
+      ""RetainedFileCountLimit"": 7
     }
   },
   ""AllowedHosts"": ""*"",
@@ -335,7 +349,7 @@ public partial class frmMain : Form
     ""ClientId"": ""your_client_id"",
     ""ClientSecret"": ""your_client_secret"",
     ""Scope"": ""openid profile email""
-  }
+    }
 }";
 
         string appSettingsFilePath = Path.Combine(projectFolder, "appsettings.json");

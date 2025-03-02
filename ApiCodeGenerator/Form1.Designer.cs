@@ -53,6 +53,8 @@
             apiProjectSettingsBindingSource = new BindingSource(components);
             btnBrowse = new Button();
             pnlScreen1 = new Panel();
+            label7 = new Label();
+            ddlLoggingType = new ComboBox();
             btnGenerate = new Button();
             pnlScreen3 = new Panel();
             pnlScreen2.SuspendLayout();
@@ -164,7 +166,7 @@
             // 
             // btnNext1
             // 
-            btnNext1.Location = new Point(479, 154);
+            btnNext1.Location = new Point(479, 195);
             btnNext1.Name = "btnNext1";
             btnNext1.Size = new Size(94, 29);
             btnNext1.TabIndex = 6;
@@ -215,10 +217,11 @@
             pnlScreen2.Controls.Add(btnTestConnection);
             pnlScreen2.Controls.Add(btnPervious2);
             pnlScreen2.Controls.Add(btnNext2);
-            pnlScreen2.Location = new Point(106, 14);
+            pnlScreen2.Location = new Point(15, 339);
             pnlScreen2.Name = "pnlScreen2";
             pnlScreen2.Size = new Size(591, 325);
             pnlScreen2.TabIndex = 11;
+            pnlScreen2.Visible = false;
             // 
             // label6
             // 
@@ -255,6 +258,8 @@
             // 
             // pnlScreen1
             // 
+            pnlScreen1.Controls.Add(label7);
+            pnlScreen1.Controls.Add(ddlLoggingType);
             pnlScreen1.Controls.Add(btnBrowse);
             pnlScreen1.Controls.Add(txtApiProjectName);
             pnlScreen1.Controls.Add(btnNext1);
@@ -265,8 +270,25 @@
             pnlScreen1.Controls.Add(label1);
             pnlScreen1.Location = new Point(15, 45);
             pnlScreen1.Name = "pnlScreen1";
-            pnlScreen1.Size = new Size(591, 199);
+            pnlScreen1.Size = new Size(591, 288);
             pnlScreen1.TabIndex = 10;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(73, 145);
+            label7.Name = "label7";
+            label7.Size = new Size(71, 20);
+            label7.TabIndex = 13;
+            label7.Text = "Logging: ";
+            // 
+            // ddlLoggingType
+            // 
+            ddlLoggingType.FormattingEnabled = true;
+            ddlLoggingType.Location = new Point(150, 142);
+            ddlLoggingType.Name = "ddlLoggingType";
+            ddlLoggingType.Size = new Size(423, 28);
+            ddlLoggingType.TabIndex = 12;
             // 
             // btnGenerate
             // 
@@ -284,19 +306,20 @@
             pnlScreen3.Controls.Add(btnGenerate);
             pnlScreen3.Controls.Add(label5);
             pnlScreen3.Controls.Add(checkedListBoxEntities);
-            pnlScreen3.Location = new Point(15, 250);
+            pnlScreen3.Location = new Point(170, 45);
             pnlScreen3.Name = "pnlScreen3";
             pnlScreen3.Size = new Size(591, 408);
             pnlScreen3.TabIndex = 12;
+            pnlScreen3.Visible = false;
             // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(741, 670);
-            Controls.Add(pnlScreen2);
+            ClientSize = new Size(783, 670);
             Controls.Add(pnlScreen1);
             Controls.Add(pnlScreen3);
+            Controls.Add(pnlScreen2);
             Controls.Add(lblWelcome);
             Controls.Add(btnStart);
             Name = "frmMain";
@@ -339,5 +362,7 @@
         private Label label6;
         private ComboBox ddlAuthType;
         private BindingSource apiProjectSettingsBindingSource;
+        private ComboBox ddlLoggingType;
+        private Label label7;
     }
 }

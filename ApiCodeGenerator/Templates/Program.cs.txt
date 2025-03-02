@@ -1,13 +1,20 @@
 using Microsoft.EntityFrameworkCore;
 using {{ ApiName }}.Data;
 using {{ ApiName }}.Data.Repositories;
-using {{ ApiName }}.Services;
 using Microsoft.OpenApi.Models;
+using System.Text;
+using FluentValidation.AspNetCore;
+{{ if AuthenticationType == "JWT" }}
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+{{ else if AuthenticationType == "OAuth 2.0" }}
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using FluentValidation.AspNetCore;
+{{ else if AuthenticationType == "API Keys"}}
+using {{ ApiName }}.Services;
+{{ end }}
+{{ if LoggingType == "Serilog" }}
+using Serilog;
+{{ end }}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -136,6 +143,24 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
     {
         options.FallbackPolicy = options.DefaultPolicy;
     });
+{{ end }}
+
+// Configure the Log
+builder.Logging.ClearProviders();
+
+{{ if LoggingType == "Console" }}
+    builder.Logging.AddConsole();
+ {{ elseif LoggingType == "Text files" }}
+        builder.Logging.AddFile("{{ ApiName }}-log-{Date}.txt");
+        builder.Services.Configure<FileLoggerOptions>(builder.Configuration.GetSection("Logging:File"));
+ {{ elseif LoggingType == "SEQ" }}
+        builder.Logging.AddSeq(builder.Configuration.GetSection("Logging:Seq"));
+        builder.Services.Configure<SeqLoggerOptions>(builder.Configuration.GetSection("Logging:Seq"));
+{{ elseif LoggingType == "Serilog" }}
+Log.Logger = new LoggerConfiguration()
+        .ReadFrom.Configuration(builder.Configuration)
+        .CreateLogger();
+builder.Host.UseSerilog();
 {{ end }}
 
 var app = builder.Build();
