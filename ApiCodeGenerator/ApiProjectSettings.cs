@@ -18,6 +18,13 @@ public class EntityDefinition
 
 public class PropertyDefinition
 {
-    public string PropertyName { get; set; } = "test";
-    public string PropertyType { get; set; } = "test";
+    public string PropertyName { get; set; } = string.Empty;
+    public string PropertyType { get; set; } = string.Empty;
+    public bool Required { get; set; } = false;
+    public int? MaxLength { get; set; } = null;
+    public int? MinLength { get; set; } = null;
+    public bool EmailAddress { get; set; } = false;
+    public double? RangeMin { get; set; } = null;
+    public double? RangeMax { get; set; } = null;
+    public string RegexPattern { get; set; } = string.Empty;
 }

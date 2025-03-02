@@ -1,0 +1,32 @@
+using FluentValidation;
+using {{ ApiName }}.Entities;
+
+namespace {{ ApiName }}.Validation
+{
+    public class {{ EntityName }}Validator : AbstractValidator<{{ EntityName }}>
+    {
+        public {{ EntityName }}Validator()
+        {
+            {{ for property in Properties }}
+                {{ if property.Required }}
+                RuleFor(x => x.{{ property.PropertyName }}).NotEmpty().WithMessage("{{ property.PropertyName }} is required.");
+                {{ end }}
+                {{ if property.MaxLength }}
+                RuleFor(x => x.{{ property.PropertyName }}).MaximumLength({{ property.MaxLength }}).WithMessage("{{ property.PropertyName }} must not exceed {{ property.MaxLength }} characters.");
+                {{ end }}
+                {{ if property.MinLength }}
+                RuleFor(x => x.{{ property.PropertyName }}).MinimumLength({{ property.MinLength }}).WithMessage("{{ property.PropertyName }} must be at least {{ property.MinLength }} characters.");
+                {{ end }}
+                {{ if property.EmailAddress }}
+                RuleFor(x => x.{{ property.PropertyName }}).EmailAddress().WithMessage("{{ property.PropertyName }} is not a valid email address.");
+                {{ end }}
+                {{ if property.Range }}
+                RuleFor(x => x.{{ property.PropertyName }}).InclusiveBetween({{ property.RangeMin }}, {{ property.RangeMax }}).WithMessage("{{ property.PropertyName }} must be between {{ property.RangeMin }} and {{ property.RangeMax }}.");
+                {{ end }}
+                {{ if property.Regex }}
+                RuleFor(x => x.{{ property.PropertyName }}).Matches("{{ property.RegexPattern }}").WithMessage("{{ property.PropertyName }} is not in the correct format.");
+                {{ end }}
+            {{ end }}
+        }
+    }
+}

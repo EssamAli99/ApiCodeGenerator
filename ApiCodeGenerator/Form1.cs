@@ -192,6 +192,7 @@ public partial class frmMain : Form
         string modelsFolder = Path.Combine(projectFolder, "Models");
         string servicesFolder = Path.Combine(projectFolder, "Services");
         string controllersFolder = Path.Combine(projectFolder, "Controllers");
+        string validationFolder = Path.Combine(projectFolder, "Validation");
 
         // Create directories if they don't exist
         Directory.CreateDirectory(entitiesFolder);
@@ -202,7 +203,8 @@ public partial class frmMain : Form
         Directory.CreateDirectory(modelsFolder);
         Directory.CreateDirectory(servicesFolder);
         Directory.CreateDirectory(controllersFolder);
-
+        Directory.CreateDirectory(validationFolder);
+        
         try
         {
             using (SqlConnection connection = new SqlConnection(_settings.ConnectionString))
@@ -218,6 +220,8 @@ public partial class frmMain : Form
                     _settings.Entities.Add(new EntityDefinition { EntityName = entityName, Properties = properties });
                 }
             }
+        
+            GenerateValidators(projectFolder);
 
             // Step 2: Generate Api Project File
             GenerateApiProjectFile(projectFolder);
@@ -255,6 +259,43 @@ public partial class frmMain : Form
         {
             MessageBox.Show($"Error generating entities: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+    }
+
+    private void GenerateValidators(string projectFolder)
+    {
+        string validatorsFolder = Path.Combine(projectFolder, "Validation");
+        Directory.CreateDirectory(validatorsFolder); // Create folder if it doesn't exists
+
+        foreach (var entity in _settings.Entities)
+        {
+            string validatorCode = GenerateValidatorCode(entity);
+            string validatorFilePath = Path.Combine(validatorsFolder, $"{entity.EntityName}Validator.cs");
+            File.WriteAllText(validatorFilePath, validatorCode);
+        }
+    }
+
+    private string GenerateValidatorCode(EntityDefinition entity)
+    {
+        string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "ValidatorTemplate.txt");
+        string templateContent = File.ReadAllText(templatePath);
+
+        // Create a Scriban template
+        var template = Template.Parse(templateContent);
+
+        // Create a Scriban template context
+        var context = new TemplateContext();
+        var scriptObject = new ScriptObject();
+
+        // Add the data to the template context
+        scriptObject.Add("ApiName", _settings.ApiName);
+        scriptObject.Add("EntityName", entity.EntityName);
+        scriptObject.Add("Properties", entity.Properties);
+        context.PushGlobal(scriptObject);
+
+        // Render the template
+        string validatorCode = template.Render(context);
+
+        return validatorCode;
     }
 
     private void GenerateApiKeyOptions(string servicesFolder)
@@ -402,7 +443,7 @@ public partial class frmMain : Form
         List<PropertyDefinition> properties = new List<PropertyDefinition>();
 
         string query = $@"
-                SELECT COLUMN_NAME, DATA_TYPE
+                SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH
                 FROM INFORMATION_SCHEMA.COLUMNS
                 WHERE TABLE_NAME = '{entityName}'";
 
@@ -415,7 +456,24 @@ public partial class frmMain : Form
                 string dataType = reader["DATA_TYPE"].ToString();
                 string propertyType = MapSqlTypeToCSharpType(dataType);
 
-                properties.Add(new PropertyDefinition { PropertyName = columnName, PropertyType = propertyType });
+                //properties.Add(new PropertyDefinition { PropertyName = columnName, PropertyType = propertyType });
+
+                string isNullable = reader["IS_NULLABLE"].ToString().ToUpper();
+                string maxLength = reader["CHARACTER_MAXIMUM_LENGTH"].ToString();
+
+                PropertyDefinition property = new PropertyDefinition { PropertyName = columnName, PropertyType = propertyType };
+
+                if (isNullable == "NO")
+                {
+                    property.Required = true;
+                }
+
+                if (!string.IsNullOrEmpty(maxLength) && int.TryParse(maxLength, out int maxLen))
+                {
+                    property.MaxLength = maxLen;
+                }
+
+                properties.Add(property);
             }
         }
 

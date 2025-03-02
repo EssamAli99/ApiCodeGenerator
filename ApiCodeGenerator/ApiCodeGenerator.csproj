@@ -27,6 +27,7 @@
     <None Remove="Templates\ProgramTemplate.tt" />
     <None Remove="Templates\spec.txt" />
     <None Remove="Templates\SpecificationEvaluator.txt" />
+    <None Remove="Templates\ValidatorTemplate.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -64,6 +65,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Templates\SpecificationEvaluator.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\ValidatorTemplate.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
