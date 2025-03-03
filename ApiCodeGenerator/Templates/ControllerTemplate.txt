@@ -9,7 +9,9 @@ using {{ ApiName }}.Services;
 {{ if AuthenticationType == "JWT" || AuthenticationType == "OAuth 2.0" }}
 using Microsoft.AspNetCore.Authorization;
 {{ end }}
-
+{{ if LoggingType != "None" }}
+using Microsoft.Extensions.Logging;
+{{ end }}
 namespace {{ ApiName }}.Controllers
 {
     [ApiController]
@@ -21,11 +23,15 @@ namespace {{ ApiName }}.Controllers
     {{ end }}
     public class {{ EntityName }}Controller : ControllerBase
     {
+        {{ if LoggingType != "None" }}
+        private readonly ILogger<{{ EntityName }}Controller> _logger;
+        {{ end }}
         private readonly IGenericRepository<{{ EntityName }}> _repository;
 
-        public {{ EntityName }}Controller(IGenericRepository<{{ EntityName }}> repository)
+        public {{ EntityName }}Controller(IGenericRepository<{{ EntityName }}> repository {{ if LoggingType != "None" }} , ILogger<{{ EntityName }}Controller> logger {{ end }})
         {
             _repository = repository;
+            {{ if LoggingType != "None" }} _logger = logger; {{ end }}
         }
 
         [HttpGet]

@@ -39,8 +39,6 @@
             label4 = new Label();
             txtConnectionString = new TextBox();
             btnTestConnection = new Button();
-            btnPervious2 = new Button();
-            btnNext2 = new Button();
             btnNext1 = new Button();
             label3 = new Label();
             label2 = new Label();
@@ -48,6 +46,7 @@
             fbdAppFolder = new FolderBrowserDialog();
             txtProjectFolder = new TextBox();
             pnlScreen2 = new Panel();
+            btnGenerate = new Button();
             label6 = new Label();
             ddlAuthType = new ComboBox();
             apiProjectSettingsBindingSource = new BindingSource(components);
@@ -55,12 +54,9 @@
             pnlScreen1 = new Panel();
             label7 = new Label();
             ddlLoggingType = new ComboBox();
-            btnGenerate = new Button();
-            pnlScreen3 = new Panel();
             pnlScreen2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)apiProjectSettingsBindingSource).BeginInit();
             pnlScreen1.SuspendLayout();
-            pnlScreen3.SuspendLayout();
             SuspendLayout();
             // 
             // btnStart
@@ -79,18 +75,18 @@
             // 
             // btnPervious3
             // 
-            btnPervious3.Location = new Point(50, 366);
+            btnPervious3.Location = new Point(74, 432);
             btnPervious3.Name = "btnPervious3";
             btnPervious3.Size = new Size(94, 29);
             btnPervious3.TabIndex = 3;
             btnPervious3.Text = "Previous";
             btnPervious3.UseVisualStyleBackColor = true;
-            btnPervious3.MouseCaptureChanged += btnPrevious3_Click;
+            btnPervious3.Click += btnPrevious3_Click;
             // 
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(12, 25);
+            label5.Location = new Point(12, 81);
             label5.Name = "label5";
             label5.Size = new Size(156, 20);
             label5.TabIndex = 1;
@@ -99,7 +95,7 @@
             // checkedListBoxEntities
             // 
             checkedListBoxEntities.FormattingEnabled = true;
-            checkedListBoxEntities.Location = new Point(174, 25);
+            checkedListBoxEntities.Location = new Point(174, 81);
             checkedListBoxEntities.Name = "checkedListBoxEntities";
             checkedListBoxEntities.Size = new Size(399, 334);
             checkedListBoxEntities.TabIndex = 0;
@@ -140,33 +136,13 @@
             btnTestConnection.Name = "btnTestConnection";
             btnTestConnection.Size = new Size(188, 29);
             btnTestConnection.TabIndex = 2;
-            btnTestConnection.Text = "Test DB Connection";
+            btnTestConnection.Text = "Connect";
             btnTestConnection.UseVisualStyleBackColor = true;
             btnTestConnection.Click += btnTestConnection_Click;
             // 
-            // btnPervious2
-            // 
-            btnPervious2.Location = new Point(47, 266);
-            btnPervious2.Name = "btnPervious2";
-            btnPervious2.Size = new Size(94, 29);
-            btnPervious2.TabIndex = 1;
-            btnPervious2.Text = "Previous";
-            btnPervious2.UseVisualStyleBackColor = true;
-            btnPervious2.Click += btnPrevious2_Click;
-            // 
-            // btnNext2
-            // 
-            btnNext2.Location = new Point(479, 266);
-            btnNext2.Name = "btnNext2";
-            btnNext2.Size = new Size(94, 29);
-            btnNext2.TabIndex = 0;
-            btnNext2.Text = "Next";
-            btnNext2.UseVisualStyleBackColor = true;
-            btnNext2.Click += btnNext2_Click;
-            // 
             // btnNext1
             // 
-            btnNext1.Location = new Point(479, 195);
+            btnNext1.Location = new Point(479, 240);
             btnNext1.Name = "btnNext1";
             btnNext1.Size = new Size(94, 29);
             btnNext1.TabIndex = 6;
@@ -210,23 +186,33 @@
             // 
             // pnlScreen2
             // 
-            pnlScreen2.Controls.Add(label6);
-            pnlScreen2.Controls.Add(ddlAuthType);
+            pnlScreen2.Controls.Add(btnPervious3);
             pnlScreen2.Controls.Add(label4);
+            pnlScreen2.Controls.Add(btnGenerate);
             pnlScreen2.Controls.Add(txtConnectionString);
+            pnlScreen2.Controls.Add(label5);
             pnlScreen2.Controls.Add(btnTestConnection);
-            pnlScreen2.Controls.Add(btnPervious2);
-            pnlScreen2.Controls.Add(btnNext2);
-            pnlScreen2.Location = new Point(15, 339);
+            pnlScreen2.Controls.Add(checkedListBoxEntities);
+            pnlScreen2.Location = new Point(609, 12);
             pnlScreen2.Name = "pnlScreen2";
-            pnlScreen2.Size = new Size(591, 325);
-            pnlScreen2.TabIndex = 11;
+            pnlScreen2.Size = new Size(591, 474);
+            pnlScreen2.TabIndex = 9;
             pnlScreen2.Visible = false;
+            // 
+            // btnGenerate
+            // 
+            btnGenerate.Location = new Point(479, 432);
+            btnGenerate.Name = "btnGenerate";
+            btnGenerate.Size = new Size(94, 29);
+            btnGenerate.TabIndex = 2;
+            btnGenerate.Text = "Generate";
+            btnGenerate.UseVisualStyleBackColor = true;
+            btnGenerate.Click += btnGenerate_Click;
             // 
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(3, 87);
+            label6.Location = new Point(3, 192);
             label6.Name = "label6";
             label6.Size = new Size(146, 20);
             label6.TabIndex = 6;
@@ -237,7 +223,7 @@
             ddlAuthType.DataBindings.Add(new Binding("SelectedItem", apiProjectSettingsBindingSource, "AuthenticationType", true));
             ddlAuthType.DataBindings.Add(new Binding("SelectedValue", apiProjectSettingsBindingSource, "AuthenticationType", true));
             ddlAuthType.FormattingEnabled = true;
-            ddlAuthType.Location = new Point(152, 82);
+            ddlAuthType.Location = new Point(152, 187);
             ddlAuthType.Name = "ddlAuthType";
             ddlAuthType.Size = new Size(421, 28);
             ddlAuthType.TabIndex = 5;
@@ -258,7 +244,9 @@
             // 
             // pnlScreen1
             // 
+            pnlScreen1.Controls.Add(label6);
             pnlScreen1.Controls.Add(label7);
+            pnlScreen1.Controls.Add(ddlAuthType);
             pnlScreen1.Controls.Add(ddlLoggingType);
             pnlScreen1.Controls.Add(btnBrowse);
             pnlScreen1.Controls.Add(txtApiProjectName);
@@ -268,7 +256,7 @@
             pnlScreen1.Controls.Add(txtProjectFolder);
             pnlScreen1.Controls.Add(label2);
             pnlScreen1.Controls.Add(label1);
-            pnlScreen1.Location = new Point(15, 45);
+            pnlScreen1.Location = new Point(12, 12);
             pnlScreen1.Name = "pnlScreen1";
             pnlScreen1.Size = new Size(591, 288);
             pnlScreen1.TabIndex = 10;
@@ -290,38 +278,15 @@
             ddlLoggingType.Size = new Size(423, 28);
             ddlLoggingType.TabIndex = 12;
             // 
-            // btnGenerate
-            // 
-            btnGenerate.Location = new Point(479, 366);
-            btnGenerate.Name = "btnGenerate";
-            btnGenerate.Size = new Size(94, 29);
-            btnGenerate.TabIndex = 2;
-            btnGenerate.Text = "Generate";
-            btnGenerate.UseVisualStyleBackColor = true;
-            btnGenerate.Click += btnGenerate_Click;
-            // 
-            // pnlScreen3
-            // 
-            pnlScreen3.Controls.Add(btnPervious3);
-            pnlScreen3.Controls.Add(btnGenerate);
-            pnlScreen3.Controls.Add(label5);
-            pnlScreen3.Controls.Add(checkedListBoxEntities);
-            pnlScreen3.Location = new Point(170, 45);
-            pnlScreen3.Name = "pnlScreen3";
-            pnlScreen3.Size = new Size(591, 408);
-            pnlScreen3.TabIndex = 12;
-            pnlScreen3.Visible = false;
-            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(783, 670);
-            Controls.Add(pnlScreen1);
-            Controls.Add(pnlScreen3);
+            ClientSize = new Size(1198, 553);
             Controls.Add(pnlScreen2);
             Controls.Add(lblWelcome);
             Controls.Add(btnStart);
+            Controls.Add(pnlScreen1);
             Name = "frmMain";
             Text = "API Code Generator";
             pnlScreen2.ResumeLayout(false);
@@ -329,8 +294,6 @@
             ((System.ComponentModel.ISupportInitialize)apiProjectSettingsBindingSource).EndInit();
             pnlScreen1.ResumeLayout(false);
             pnlScreen1.PerformLayout();
-            pnlScreen3.ResumeLayout(false);
-            pnlScreen3.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -346,8 +309,6 @@
         private Label label4;
         private TextBox txtConnectionString;
         private Button btnTestConnection;
-        private Button btnPervious2;
-        private Button btnNext2;
         private Button btnNext1;
         private Label label3;
         private Label label2;
@@ -357,7 +318,6 @@
         private Panel pnlScreen2;
         private Panel pnlScreen1;
         private Button btnGenerate;
-        private Panel pnlScreen3;
         private Button btnBrowse;
         private Label label6;
         private ComboBox ddlAuthType;

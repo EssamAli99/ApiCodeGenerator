@@ -16,7 +16,6 @@ public partial class frmMain : Form
         InitializeComponent();
         // Initially show only Screen 1
         pnlScreen2.Visible = false;
-        pnlScreen3.Visible = false;
         pnlScreen1.Dock = DockStyle.Fill;
         pnlScreen1.Location = new Point(0, 0);
 
@@ -34,6 +33,9 @@ public partial class frmMain : Form
         ddlLoggingType.Items.Add("SEQ");
         ddlLoggingType.Items.Add("Serilog");
         ddlLoggingType.SelectedItem = "None"; // Set default selection
+
+        this.Width = 700;
+        this.Height = 600;
     }
 
     private void ShowPanel(Panel panelToShow)
@@ -41,7 +43,6 @@ public partial class frmMain : Form
         // Hide all panels first
         pnlScreen1.Visible = false;
         pnlScreen2.Visible = false;
-        pnlScreen3.Visible = false;
 
         // Show the desired panel
         panelToShow.Visible = true;
@@ -65,6 +66,7 @@ public partial class frmMain : Form
         _settings.ApiName = txtApiName.Text;
         _settings.ProjectFolder = txtProjectFolder.Text;
         _settings.LoggingType = ddlLoggingType.SelectedItem?.ToString() ?? "None"; // Save Logging Type
+        _settings.AuthenticationType = ddlAuthType.SelectedItem?.ToString() ?? "None"; // Save Authentication 
 
         // Save to JSON file
         string jsonFilePath = Path.Combine(Environment.CurrentDirectory, "settings.json");
@@ -85,71 +87,24 @@ public partial class frmMain : Form
         }
     }
 
-    private void btnNext2_Click(object sender, EventArgs e)
+    private void btnPrevious3_Click(object sender, EventArgs e)
     {
+        ShowPanel(pnlScreen1);
+    }
+
+    private void btnTestConnection_Click(object sender, EventArgs e)
+    {
+        checkedListBoxEntities.Items.Clear(); // Clear existing items
         if (string.IsNullOrWhiteSpace(txtConnectionString.Text))
         {
             MessageBox.Show("Connection string is required.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
-        _settings.ConnectionString = txtConnectionString.Text;
-        _settings.AuthenticationType = ddlAuthType.SelectedItem?.ToString() ?? "None"; // Save Authentication 
-
-        string jsonFilePath = Path.Combine(Environment.CurrentDirectory, "settings.json");
-
-        try
-        {
-            string json = JsonConvert.SerializeObject(_settings, Formatting.Indented); // Formatting.Indented for readability
-
-            // Create the file if it doesn't exist, and overwrite if it does
-            File.WriteAllText(jsonFilePath, json);
-
-            // Navigate to the next screen
-            LoadEntities();
-            ShowPanel(pnlScreen3);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Error saving settings: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-
-    private void btnPrevious2_Click(object sender, EventArgs e)
-    {
-        ShowPanel(pnlScreen1);
-    }
-
-    private void btnPrevious3_Click(object sender, EventArgs e)
-    {
-        ShowPanel(pnlScreen2);
-    }
-
-    private void btnTestConnection_Click(object sender, EventArgs e)
-    {
         try
         {
             using (SqlConnection connection = new SqlConnection(txtConnectionString.Text))
             {
                 connection.Open();
-                MessageBox.Show("Connection successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Connection failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-
-    private void LoadEntities()
-    {
-        checkedListBoxEntities.Items.Clear(); // Clear existing items
-
-        try
-        {
-            using (SqlConnection connection = new SqlConnection(_settings.ConnectionString))
-            {
-                connection.Open();
-
                 // SQL query to retrieve tables and views
                 string query = @"
                         SELECT TABLE_NAME, TABLE_TYPE
@@ -169,11 +124,28 @@ public partial class frmMain : Form
                         checkedListBoxEntities.Items.Add(tableName);
                     }
                 }
+                MessageBox.Show("Connection successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
+            _settings.ConnectionString = txtConnectionString.Text;
+
+            string jsonFilePath = Path.Combine(Environment.CurrentDirectory, "settings.json");
+
+            try
+            {
+                string json = JsonConvert.SerializeObject(_settings, Formatting.Indented); // Formatting.Indented for readability
+
+                // Create the file if it doesn't exist, and overwrite if it does
+                File.WriteAllText(jsonFilePath, json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving settings: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error loading entities: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Connection failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
@@ -213,7 +185,7 @@ public partial class frmMain : Form
         Directory.CreateDirectory(servicesFolder);
         Directory.CreateDirectory(controllersFolder);
         Directory.CreateDirectory(validationFolder);
-        
+
         try
         {
             using (SqlConnection connection = new SqlConnection(_settings.ConnectionString))
@@ -229,7 +201,7 @@ public partial class frmMain : Form
                     _settings.Entities.Add(new EntityDefinition { EntityName = entityName, Properties = properties });
                 }
             }
-        
+
             GenerateValidators(projectFolder);
 
             // Step 2: Generate Api Project File
@@ -327,17 +299,45 @@ public partial class frmMain : Form
   ""Logging"": {
     ""LogLevel"": {
       ""Default"": ""Information"",
-      ""Microsoft.AspNetCore"": ""Warning""
-    },
-    ""File"": {
-      ""Path"": ""C:\\logs"",
-      ""RollingInterval"": ""Day"",
-      ""RetainedFileCountLimit"": 7
+      ""Microsoft.AspNetCore"": ""Warning"",
+      ""Microsoft.EntityFrameworkCore.Database.Command"": ""Information"",
+      ""Microsoft.EntityFrameworkCore.Infrastructure"": ""Information""
     }
+  },
+  ""Serilog"": {
+    ""MinimumLevel"": {
+      ""Default"": ""Information"",
+      ""Override"": {
+        ""Microsoft"": ""Warning"",
+        ""System"": ""Warning""
+      }
+    },
+    ""Enrich"": [ ""FromLogContext"", ""WithMachineName"", ""WithProcessId"", ""WithThreadId"" ],
+    ""Properties"": {
+      ""Application"": ""Sample""
+    },
+    ""WriteTo"": [
+      {
+        ""Name"": ""File"",
+        ""Args"": {
+          ""path"": ""Logs/log-.txt"",
+          ""rollingInterval"": ""Day"",
+          ""retainedFileCountLimit"": 7
+        }
+      },
+      {
+        ""Name"": ""Seq"",
+        ""Args"": {
+          ""serverUrl"": ""http://localhost:8081"",
+          ""apiKey"": null,
+          ""restrictedToMinimumLevel"": ""Information""
+        }
+      }
+    ]
   },
   ""AllowedHosts"": ""*"",
   ""Jwt"": {
-    ""Key"": ""YourSuperSecretKeyHere"",
+    ""Key"": ""YourSuperSecretKeyHere-YourSuperSecretKeyHere-YourSuperSecretKeyHere"",
     ""Issuer"": ""yourdomain.com"",
     ""Audience"": ""yourdomain.com""
   },
@@ -384,6 +384,7 @@ public partial class frmMain : Form
         // Add the data to the template context
         scriptObject.Add("ApiName", _settings.ApiName);
         scriptObject.Add("AuthenticationType", _settings.AuthenticationType);
+        scriptObject.Add("LoggingType", _settings.LoggingType);
         context.PushGlobal(scriptObject);
 
         // Render the template
@@ -667,6 +668,7 @@ namespace {_settings.ApiName}.Entities
         // Add the data to the template context
         scriptObject.Add("ApiName", _settings.ApiName);
         scriptObject.Add("AuthenticationType", _settings.AuthenticationType);
+        scriptObject.Add("LoggingType", _settings.LoggingType);
         scriptObject.Add("Entities", _settings.Entities);
         context.PushGlobal(scriptObject);
 
@@ -693,7 +695,7 @@ namespace {_settings.ApiName}.Entities
         scriptObject.Add("ApiName", _settings.ApiName);
         scriptObject.Add("EntityName", entity.EntityName);
         scriptObject.Add("AuthenticationType", _settings.AuthenticationType);
-
+        scriptObject.Add("LoggingType", _settings.LoggingType);
         context.PushGlobal(scriptObject);
 
         // Render the template

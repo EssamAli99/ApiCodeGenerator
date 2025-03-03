@@ -150,13 +150,13 @@ builder.Logging.ClearProviders();
 
 {{ if LoggingType == "Console" }}
     builder.Logging.AddConsole();
- {{ elseif LoggingType == "Text files" }}
+ {{ else if LoggingType == "Text files" }}
         builder.Logging.AddFile("{{ ApiName }}-log-{Date}.txt");
         builder.Services.Configure<FileLoggerOptions>(builder.Configuration.GetSection("Logging:File"));
- {{ elseif LoggingType == "SEQ" }}
+ {{ else if LoggingType == "SEQ" }}
         builder.Logging.AddSeq(builder.Configuration.GetSection("Logging:Seq"));
         builder.Services.Configure<SeqLoggerOptions>(builder.Configuration.GetSection("Logging:Seq"));
-{{ elseif LoggingType == "Serilog" }}
+{{ else if LoggingType == "Serilog" }}
 Log.Logger = new LoggerConfiguration()
         .ReadFrom.Configuration(builder.Configuration)
         .CreateLogger();
@@ -172,27 +172,23 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "{{ ApiName }} API V1");
-
         {{ if AuthenticationType == "JWT" }}
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "{{ ApiName }} API V1");
         c.EnableFilter(); // Enable authentication/authorization filters in Swagger UI
         {{ end }}
-         {{ if AuthenticationType == "OAuth 2.0" }}
-            c.OAuthClientId(builder.Configuration["OAuth2:ClientId"]);
-            c.OAuthScopes(builder.Configuration["OAuth2:Scope"]);
-            c.OAuthUsePkce();
+        {{ if AuthenticationType == "OAuth 2.0" }}
+        c.OAuthClientId(builder.Configuration["OAuth2:ClientId"]);
+        c.OAuthScopes(builder.Configuration["OAuth2:Scope"]);
+        c.OAuthUsePkce();
         {{ end }}
     });
 }
 
 app.UseHttpsRedirection();
 
-{{ if AuthenticationType == "JWT" }}
-    app.UseAuthentication();
-    app.UseAuthorization();
-{{ else }}
-    app.UseAuthentication();
-    app.UseAuthorization(); // Keep this, even if no auth, for potential future use
+{{ if AuthenticationType != "None" }}
+app.UseAuthentication();
+app.UseAuthorization();
 {{ end }}
 
 app.MapControllers();
