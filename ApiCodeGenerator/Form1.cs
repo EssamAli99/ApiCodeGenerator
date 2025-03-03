@@ -185,6 +185,7 @@ public partial class frmMain : Form
         Directory.CreateDirectory(servicesFolder);
         Directory.CreateDirectory(controllersFolder);
         Directory.CreateDirectory(validationFolder);
+        Directory.CreateDirectory(Path.Combine(projectFolder, "Logs"));
 
         try
         {
@@ -328,7 +329,7 @@ public partial class frmMain : Form
       {
         ""Name"": ""Seq"",
         ""Args"": {
-          ""serverUrl"": ""http://localhost:8081"",
+          ""serverUrl"": ""http://localhost:5341"",
           ""apiKey"": null,
           ""restrictedToMinimumLevel"": ""Information""
         }

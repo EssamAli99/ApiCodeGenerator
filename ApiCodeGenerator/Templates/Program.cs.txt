@@ -12,8 +12,9 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 {{ else if AuthenticationType == "API Keys"}}
 using {{ ApiName }}.Services;
 {{ end }}
-{{ if LoggingType == "Serilog" }}
+{{ if LoggingType != "None" }}
 using Serilog;
+using Serilog.Sinks.File; // required for file logging
 {{ end }}
 
 var builder = WebApplication.CreateBuilder(args);
@@ -147,7 +148,7 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 
 // Configure the Log
 builder.Logging.ClearProviders();
-
+/*
 {{ if LoggingType == "Console" }}
     builder.Logging.AddConsole();
  {{ else if LoggingType == "Text files" }}
@@ -162,6 +163,19 @@ Log.Logger = new LoggerConfiguration()
         .CreateLogger();
 builder.Host.UseSerilog();
 {{ end }}
+*/
+
+{{ if LoggingType != "None" }}
+Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(builder.Configuration)
+                .Enrich.FromLogContext()
+{{ if LoggingType == "Console"}}.WriteTo.Console(){{ end }}
+{{ if LoggingType == "SEQ"}}.WriteTo.Seq("http://localhost:5341"){{ end }}
+{{ if LoggingType == "Text files"}}.WriteTo.File(path: "log-.txt", rollingInterval: RollingInterval.Day){{ end }}
+                .CreateLogger();
+builder.Host.UseSerilog();
+{{ end }}
+
 
 var app = builder.Build();
 
